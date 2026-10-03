@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Voice Drop - 語音測試</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			text-align: center;
+			padding: 50px;
+			background-color: #f4f4f9;
+		}
+		.card {
+			background: white;
+			padding: 30px;
+			border-radius: 12px;
+			box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+			display: inline-block;
+		}
+		button {
+			padding: 12px 24px;
+			font-size: 16px;
+			margin: 10px;
+			border: none;
+			border-radius: 6px;
+			cursor: pointer;
+		}
+		#startBtn { background-color: #28a745; color: white; }
+		#stopBtn { background-color: #dc3545; color: white; }
+		audio { margin-top: 20px; display: block; }
+	</style>
+</head>
+<body>
+	<div class="card">
+		<h1>Voice Drop 錄音測試</h1>
+		<p>點擊下方按鈕開始錄製你的聲音：</p>
+		<button id="startBtn">開始錄音</button>
+		<button id="stopBtn" disabled>停止錄音</button>
+		<br><br>
+		<audio id="audioPlayer" controls></audio>
+	</div>
+
+	<script>
+		let mediaRecorder;
+		let audioChunks = [];
+
+		const startBtn = document.getElementById('startBtn');
+		const stopBtn = document.getElementById('stopBtn');
+		const audioPlayer = document.getElementById('audioPlayer');
+
+		startBtn.addEventListener('click', async () => {
+			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+			mediaRecorder = new MediaRecorder(stream);
+			audioChunks = [];
+
+			mediaRecorder.ondataavailable = event => {
+				audioChunks.push(event.data);
+			};
+
+			mediaRecorder.onstop = () => {
+				const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+				const audioUrl = URL.createObjectURL(audioBlob);
+				audioPlayer.src = audioUrl;
+			};
+
+			mediaRecorder.start();
+			startBtn.disabled = true;
+			stopBtn.disabled = false;
+		});
+
+		stopBtn.addEventListener('click', () => {
+			mediaRecorder.stop();
+			startBtn.disabled = false;
+			stopBtn.disabled = true;
+		});
+	</script>
+</body>
+</html>
